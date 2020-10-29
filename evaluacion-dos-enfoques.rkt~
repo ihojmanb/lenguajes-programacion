@@ -1,0 +1,26 @@
+#lang racket
+;; enfoque 1: evaluacion perezosa
+; -> se substituye la expresion nombrada, sin evalua
+{with {x {+ 10 10}}
+      {+ x x}}
+-->[subst]
+{+ {+ 10 10} {+ 10 10}}
+
+-->[calc]*
+40
+
+;; enfoque 2: evaluacion temprana
+; -> se evalua la expresión nombrada antes de substituir
+{with {x {+ 10 10}}
+      {+ x x}}
+
+--> [calc]
+{with {x 20}
+      {+ x x}}
+
+
+-->[subst]
+{+ 20 20}
+
+-->[calc]
+40

@@ -1,0 +1,14 @@
+#lang racket
+(define (my-max a b)
+  (if (> a b) a b))
+
+(my-max 1 0)
+(my-max -1 15)
+(my-max 9 9)
+
+
+(define (pick-random a b)
+  (let ([r (random)])
+    (if (> r 0.5) a b)))
+
+(pick-random 2 3)

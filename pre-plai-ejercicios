@@ -1,0 +1,68 @@
+#lang racket
+#|
+;Ejercicio: imprima (con printf) la raíz cuadrada de -1/4.
+(printf(number->string(sqrt -1/4)))
+|#
+
+#|;Ejercicio: introduzca localmente dos identificadores locales,
+;asociados a números, y retorne el máximo.
+(let* ([a 1]
+       [b 2])
+  (cond [(> a b) a]
+       [else b]))
+|#
+
+#|;Ejercicio: defina la función (sum a b) que suma sus dos parámetros.
+(define (sum a b)
+  {+ a b})
+|#;Ejercicio: defina la función (pick-random x y) que retorna en
+;forma aleatoria uno de sus argumentos. (La función (random) genera
+;un número aleatorio entre 0 y 1).
+
+#|(define (pick-random x y)
+  (let* ([r (random)])
+  (cond[(> r 0.5) x]
+       [else y])))
+|#
+
+;Ejercicio: defina la función (pair-add1 p) que recibe un par de números
+;y retorna un nuevo par dónde los dos elementos fueron incrementados en "1".
+#|(define (pair-add1 p)
+  (cons {+(car p) 1} {+(cdr p) 1} ))
+|#
+
+
+
+;Ejercicio: defina la función list-pick-random que retorna un elemento al azár
+;dentro de una lista.(La función (random k) retorna un número aleatorio entre 0 y k-1.)
+
+#|(define (list-pick-random l)
+  (let* ([len (length l)]
+         [r (random len)])
+    (list-ref l r)))
+|#
+
+;Ejercicio: defina la función vector-set-random!
+;que cambia un elemento al azár dentro de un vector por un valor dado.
+
+#|(define (vector-set-random! vec val)
+  (let*([l (vector->list vec)]
+        [len (length l)]
+        [r (random len)]
+       )(vector-set! vec r val)))
+|#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

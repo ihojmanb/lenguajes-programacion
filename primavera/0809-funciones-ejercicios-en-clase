@@ -1,0 +1,28 @@
+#lang racket
+;; Ejercicios
+
+;; negate :: (A -> B) -> (C -> D)
+(define (negate p)
+  (λ(x) (not (p x))))
+
+((negate even?) 2) ;; #f
+
+;; reject :: (A -> B) x list -> list
+(define (reject p l)
+  (filter (negate p) l))
+(reject even? '(1 2 3 4 5 6)) ;; '(1 3 5)
+
+;; apply-twice :: (A -> A) -> (B -> B)
+(define (apply-twice f)
+  (λ(x) (f (f x))))
+
+((apply-twice add1) 1) ;; 3
+
+;; Currying
+(define (nonCurrySum x y)
+(+ x y))
+(nonCurrySum 2 3) ;; 5
+
+(define (currySum y)
+(lambda (x) (+ x y)))
+(map (currySum 1) '(1 2 3))

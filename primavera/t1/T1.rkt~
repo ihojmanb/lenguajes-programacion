@@ -1,0 +1,156 @@
+#lang play
+(require math/flonum)
+(print-only-errors #t)
+#|
+Complete sus datos personales:
+NOMBRE Y APELLIDO: Ianiv Hojman
+RUT:19245895-1
+|#
+
+;; Parte a)
+
+;; <CFraction> ::=  (simple <Int>)
+;;               |  (Compound <Int> <Int> <CFraction>)
+;; CFraction es la representación de fracciones continuas
+;; existen dos tipos: simples, que consisten en numeros enteros
+;; y compuestos, que representan un numero racional en su estructura
+;; inductiva
+(deftype CFraction
+  (simple i)
+  (compound i numer denom))
+
+
+;; Parte b)
+;; eval :: CFraction -> Rational
+;; evalúa una fracción continua, devolviendo un número racional
+(define (eval frac)
+  (match frac
+    [(simple i) i]
+    [(compound i n d) (+ i (/ n (eval d)))]
+    ))
+
+;; Parte c)
+;; degree ::  CFraction -> Integer
+;; devuelve el grado de una fracción continua
+(define (degree frac)
+  (match frac
+    [(simple i) 0]
+    [(compound i n d) (add1 (degree d))]))
+
+
+;; Parte d)
+;; fold :: (Integer -> A) (Integer Integer A -> A) -> (CFraction -> A)
+;; fold captura el esquema de recursión asociado a CFraction
+(define (fold f g)
+  (λ(frac)
+    (match frac
+      [(simple i) (f i)]
+      [(compound i n d) (g i n ((fold f g) d))])))
+
+
+;; Parte e): Redefinición de eval y degree
+;; eval2 :: CFraction -> Rational
+;; evalúa una fracción continua, devolviendo un número racional
+;; hace uso de fold
+(define eval2
+  (fold identity (λ(i n d) (+ i (/ n d)))))
+
+;; degree2 ::  CFraction -> Integer
+;; devuelve el grado de una fracción continua
+;; hace uso de fold
+(define degree2
+  (fold (λ(i) (* 0 1)) (λ(i n d) (add1 d))))
+
+
+;; Parte f)
+
+
+;; funcion auxiliar sqr Integer  -> integer
+;; toma un numero y devuelve su cuadrado
+(define (sqr i)
+  (* i i))
+
+;; mysterious-cf :: Integer -> CFraction
+;; Adapter para get-mysterious-cf
+;; llama aget-mysterious-cf para producir el k-esimo numero de la
+;; secuencia misteriosa de fracciones continuas definida
+;; aborda el caso base k = 0
+(define (mysterious-cf k)
+  (if (equal? k 0)
+      (simple 3)
+      (get-mysterious-cf k k))
+  )
+
+;; mysterious-cf :: Integer Integer -> CFraction
+;; produce el k-esimo numero de la secuencia misteriosa de
+;; fracciones continuas definida
+(define (get-mysterious-cf k j)
+  (if (< k 0)
+      (error "Error: argumento negativo") 
+      (if (equal? k 0)
+          (simple 6)
+          (if (equal? j k) ;; j = k -> solo la primera vez
+              (compound 3 (sqr (- (* 2 (- j (- k 1))) 1))
+                        (if (equal? 0 (sub1 k))
+                            (simple 6)
+                            (get-mysterious-cf (sub1 k) j)))
+              (compound 6 (sqr (- (* 2 (- j (- k 1))) 1))
+                        (if (equal? 0 (sub1 k))
+                            (simple 6)
+                            (get-mysterious-cf (sub1 k) j)))
+              )
+          )
+      )
+  )
+  
+;; Parte g)
+;; from-to :: Int Int -> list[Int]
+;; genera la lista de todos los numeros entre a y b, incluyendolos
+(define (from-to a b [l '()])
+  (if (equal? a b)
+      (reverse (cons a l))
+      (from-to (add1 a) b (cons a l)))
+  )
+
+;; raw-mysterious-list :: Integer -> list[CFraction]
+;; entrega una lista con las n primers fracciones continuas misteriosas
+(define (raw-mysterious-list n [l '()])
+  (if (equal? n 0)
+      (cons (mysterious-cf n) l)
+      (raw-mysterious-list (sub1 n) (cons (mysterious-cf n) l)))
+  )
+  
+;; pero no necesito from-to para definir mysterious-list
+;; mysterious-list :: Integer -> listOf Float
+;; tomo un n, genera una raw-mysterious list de n elementos,
+;; convierte cada CFraction a numero fraccionario y
+;; devuelve una lista de numeros en punto flotantes
+(define (mysterious-list n)
+  (map fl (map eval (raw-mysterious-list n)))
+  )
+;; A que numero tiende (mysterious-cf k) cuando k tiende a infinito?
+#; (mysterious-list 500)
+;; tiende a PI
+
+
+;; Parte h)
+;; rac-to-cf :: Rational -> CFraction
+;; transforma un numero racional no negativo en su representación en
+;; forma de fracción continua
+(define (rac-to-cf r [l '()])
+  (if (< r 0)
+      (error "Error: argumento negativo")
+  (let* ([i (floor r)]
+         [f (- r i)]) (if (equal? 0 f)
+                          (simple i)
+                          (compound i 1 (rac-to-cf (/ 1 f))))))
+  )
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,32 @@
+#lang racket
+; con identificadores
+{with {x 5}
+  {with {y 10}
+     {+ x y}}}
+
+;indices de "de Bruijn"
+{with 5
+  {with 10 
+   {+ <1> <0>}}}
+
+
+; con identificadores
+{with {x 5}
+  {with {y {+ x 1}}
+     {+ x y}}}
+
+;indices de "de Bruijn"
+{with 5
+  {with {+ <0> 1} 
+   {+ <1> <0>}}}
+
+;substitucion tiene que incrementar el indice a reemplazar
+subst 5 at <0> en
+  {with {+ <0> 1} 
+   {+ <1> <0>}}}
+
+-->
+{with {+ 5 1}}
+         ;subst 5 at <1> en nested boy
+   {+ 5 <0>}}}
+

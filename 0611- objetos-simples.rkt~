@@ -1,0 +1,67 @@
+#lang play
+
+;;1. "codificando" un objeto con funciones y variables locales
+(define counter
+  (let ([count 0]
+        [step 1])
+    (let ([methods
+           (list
+            (cons 'inc (λ ()
+                         (set! count (+ count step))
+                         count))
+            (cons 'dec (λ ()
+                         (set! count (- count step))
+                         count))
+            (cons 'init (λ (v)
+                          (set! count v)))
+            (cons 'reset (λ ()
+                           (set! count 0)))
+            (cons 'step! (λ (v)
+                           (set! step v))))])
+      (λ (msg . args)
+        (let ([found (assoc msg methods)])
+          (if found
+              (apply (cdr found) args)
+              (error "message not understood: " msg)))))))
+
+
+;; 3. definimos la macro para transformar l"azucar sintactico" a "codificacion"
+(defmac (OBJECT ([field fname fval] ...)
+                ([method mname args body ...] ...))
+  #:keywords field method
+    (let ([fname fval] ...)
+    (let ([methods (list (cons 'mname (λ args body ...)) ...)])
+      (λ (msg . vals)
+        #;(let ([found (assoc msg methods)])
+          (if found
+              (apply (cdr found) vals)
+              (error "message not understood: " msg)))
+        (apply (cdr (assoc msg methods)) vals)
+        ))))
+;; 2. lo que nos gustaria escribir
+(define counter%
+  (OBJECT
+   ([field count 0]
+    [field step 1])
+   ([method inc ()
+            (set! count (+ count step))
+            count]
+    [method dec ()
+            (set! count (- count step))
+            count]
+    [method init (v) (set! count v)]
+    [method reset () (set! count 0)]
+    [method step! (v) (set! step v)])))
+
+;; lo mismo para el uso (invocar metodos)
+; 1. encoding
+(counter% 'dec)
+; 3.macro para hacer la transformacion
+(defmac (-> o m arg ...)
+  (o 'm arg ...))
+; 2. uso con sintaxis adecuada
+(-> counter% dec)
+(-> counter% step! 10)
+(-> counter% inc)
+;(-> counter% step)  ; falla por que los campos (var. de instancia ) estan
+; "fuertemente encapsulados"

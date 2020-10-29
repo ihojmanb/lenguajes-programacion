@@ -1,0 +1,112 @@
+#lang play
+(print-only-errors #t)
+
+;P1. defina las siguientes funciones:
+
+; a. my-map, una versión propia de map
+;; my-map :: (A->B) List[A] -> List[B]
+;; Mapea una lista
+;; version recursiva
+#;(define (my-map f l)
+  (if (empty? l)
+      '()
+      (cons (f (first l)) (my-map f (rest l)))))
+;; version con pattern-matching
+(define (my-map f l)
+  (match l
+    ['() '()]
+    [(cons a b) (cons (f a) (my-map f b))]))
+; b. my-filter, una versión propia de filter
+;; my-filter :: (A -> bool) List[A] -> List[A]
+;; filtra elementos de una lista
+;; version recursiva
+#; (define (my-filter f l)
+     (if (empty? l)
+         '()
+         (if (pred (car l))
+             (cons (car l) (my-filter pred (cdr l)))
+             (my-filter pred (cdr l)))))
+
+;;Version pattern-matching 
+;; TODO
+; c. my-foldr, una versión propia de foldr
+;; my-foldr :: (A x A -> A) x A x List[A] -> A
+#;(define (my-foldr f accum l)
+  (if (empty? l)
+      accum
+      (f (car l) (my-foldr f accum (cdr l)))))
+(define (my-foldr f accum l)
+  (match l
+    ('() accum)
+    ((cons h t) (f h (my-foldr f accum t)))))
+
+(test (my-foldr string-append "" '("pan" "queso")) "panqueso")
+(test (my-foldr + 0 '(1 2 3)) 6)
+(test (my-foldr - 0 '()) 0)
+
+; P2. Usando map, foldl, foldr o filter segun corresponda, deina
+; una función que cumpla con lo pedido para cada caso
+
+;; a. Dada una lista de numeros, que retorne la misma lista con cada
+;; elemento en formato string
+
+(define (numList l)
+  (map number->string l))
+
+
+;; b. Dada una lista de nueros, que retorne la sumatoria de todos sus elementos
+(define (sumatoria l)
+  (foldr + 0 l))
+(test (sumatoria '(1 2 3 4)) 10)
+
+;; c. Dada una lista de strings, que retorna la concatenacion de todos
+;; sus elementos
+(define (concat l)
+  (foldr string-append "" l))
+
+(test (concat '("a" "b" "c")) "abc")
+
+
+;; d. Dada una lista de lo que sea, que retorne la lista de todos los elementos numericos
+
+(define (only-numbers l)
+  (filter number? l))
+(test (only-numbers '("a" 1 2 "b")) '(1 2))
+
+;; e. dada una lista de numeros y una funcon, retorne la sumatoria de los ele
+;;mentos de la lista tras haber aplicado la funcion
+;; TODO
+
+
+;; P3.  En clases se vio lo que es la currificacion, que en simple es transformar la forma
+;; en que una funcion recive sus argumentos, por ejemplo (f arg1 arg2) alser currificada
+;; se aplica como ((f arg1) arg2)
+
+;; a.
+
+
+
+;; Defina la funcion (uncurry-2 f) que al pasarle una funcion
+;; currificada de 2 argumentos, devuelve su version que recibe
+;; 2 argumentos
+;; uncury-2 :: ((A->B)-> C) -> (A B -> C)
+(define (uncurry-2 f)
+  (λ(a b) (f ())))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

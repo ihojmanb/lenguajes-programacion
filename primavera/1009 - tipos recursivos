@@ -1,0 +1,89 @@
+#lang play
+(print-only-errors #t)
+#|
+<BinTree> ::  = (leaf <value>)
+                |(in-node <value> <BinTree> <Bintree>)
+|#
+;; inductive type for representing binary trees
+(deftype BinTree
+  (leaf value)
+  (in-node value left right))
+
+;; height :: Bintree -> Int
+;; devuelve la altura de un arbol binario
+(define (height bt)
+  (match bt
+    [(leaf _) 0]
+    [(in-node _ l r) (+ 1 (max(height l) (height r)))]))
+
+;; definimos algunos arboles binarios
+(def bt0 (leaf 12))
+(def my-tree (in-node 2 (in-node 3 (leaf 1) (leaf 5)) (leaf 7)))
+
+
+;; Accesores
+(in-node-value my-tree)
+(in-node-left my-tree)
+
+;; Ejercicio en Clases
+;; sum-bintree :: BinTree -> Int
+;; suma todos los valores que se encuentran en el arbol
+(define (sum-bintree bt)
+  (match bt
+    [(leaf v) v]
+    [(in-node v l r) (+ v (sum-bintree l) (sum-bintree r))]))
+
+(test (sum-bintree my-tree) 18)
+
+;; max-bintree :: BinTree -> Int
+;; retorna el maximo de los elementros dentro del arbol
+(define (max-bintree bt)
+  (match bt
+    [(leaf v) v]
+    [(in-node _ l r) (max (max-bintree l) (max-bintree r))]))
+
+(test (max-bintree bt0) 12)
+(test (max-bintree my-tree)  7)
+
+;; contains? :: BinTree Value -> Bool
+;; verifica si el arbol contiene un valor
+(define (contains? bt n)
+  (match bt
+    [(leaf v) (equal? n v)]
+    [(in-node v l r) (or (equal? v n)
+                         (contains? l n)
+                         (contains? r n))]))
+
+;; fold-bintree :: (Number -A) (Number A A -> A) -> (BinTree -> A)
+;; fold over numeric binary trees
+(define (fold-bintree f g)
+  (λ (bt)
+    (match bt
+      [(leaf v) (f v)]
+      [(in-node v l r) (g v
+                          ((fold-bintree f g) l)
+                          ((fold-bintree f g) r))])))
+;; max-bintree :: binTree -> Number
+;; Retorna el elemento más grande dentro del árbol
+(define max-bintree2
+  (fold-bintree identity max))
+(test (max-bintree my-tree) 7)
+
+;; sum-bintree :: binTree -> Number
+;; Retorna la suma de los elementos dentro del árbol
+(define sum-bintree2
+  (fold-bintree identity +))
+(test (sum-bintree2 my-tree) 18)
+
+;; contains-bintree? :: BinTree Number -> Boolean
+;; mira si un numero pertenece al arbol, a partir de la func.fold-bintree
+(define (contains-bintree? bt n) 
+  ((fold-bintree (λ(v) (equal? v n))
+                 (λ(v branch1 branch2)
+                   (or (equal? v n) branch1 branch2))) bt))
+  
+(test (contains-bintree? my-tree 5) #t)
+(test (contains-bintree? my-tree 0) #f)
+
+
+

@@ -1,0 +1,198 @@
+#lang play
+(print-only-errors #t)
+
+;P1. defina las siguientes funciones:
+
+; a. my-map, una versión propia de map
+;; my-map :: (A->B) List[A] -> List[B]
+;; Mapea una lista
+;; version recursiva
+#;(define (my-map f l)
+    (if (empty? l)
+        '()
+        (cons (f (first l)) (my-map f (rest l)))))
+;; version con pattern-matching
+(define (my-map f l)
+  (match l
+    ['() '()]
+    [(cons a b) (cons (f a) (my-map f b))]))
+; b. my-filter, una versión propia de filter
+;; my-filter :: (A -> bool) List[A] -> List[A]
+;; filtra elementos de una lista
+;; version recursiva
+#; (define (my-filter pred l)
+     (if (empty? l)
+         '()
+         (if (pred (car l))
+             (cons (car l) (my-filter pred (cdr l)))
+             (my-filter pred (cdr l)))))
+
+;;Version pattern-matching 
+#;(define (my-filter pred l)
+    (match l
+      ['() '()]
+      [(cons h t)
+       (if (pred h)
+           (cons h (my-filter t))
+           (my-filter pred t))
+       ]))
+
+; c. my-foldr, una versión propia de foldr
+;; my-foldr :: (A x A -> A) x A x List[A] -> A
+#;(define (my-foldr f accum l)
+    (if (empty? l)
+        accum
+        (f (car l) (my-foldr f accum (cdr l)))))
+(define (my-foldr f accum l)
+  (match l
+    ('() accum)
+    ((cons h t) (f h (my-foldr f accum t)))))
+
+(test (my-foldr string-append "" '("pan" "queso")) "panqueso")
+(test (my-foldr + 0 '(1 2 3)) 6)
+(test (my-foldr - 0 '()) 0)
+
+; P2. Usando map, foldl, foldr o filter segun corresponda, deina
+; una función que cumpla con lo pedido para cada caso
+
+;; a. Dada una lista de numeros, que retorne la misma lista con cada
+;; elemento en formato string
+
+#;(define (numList l)
+    (map number->string l))
+
+
+;; b. Dada una lista de numeros, que retorne la sumatoria de todos sus elementos
+(define (sum-nums l)
+  (foldr + 0 l))
+(test (sum-nums '(1 2 3 4)) 10)
+
+;; c. Dada una lista de strings, que retorna la concatenacion de todos
+;; sus elementos
+(define (concat l)
+  (foldr string-append "" l))
+
+(test (concat '("a" "b" "c")) "abc")
+
+
+;; d. Dada una lista de lo que sea, que retorne la lista de todos los elementos numericos
+
+(define (only-numbers l)
+  (filter number? l))
+(test (only-numbers '("a" 1 2 "b")) '(1 2))
+
+;; e. dada una lista de numeros y una funcon, retorne la sumatoria de los ele
+;;mentos de la lista tras haber aplicado la funcion
+(define (sum-elements l f)
+  (foldr + 0 (map f l)))
+(test (sum-elements '(1 2 3 4 5) (λ(v) (* v v))) 55)
+(test (sum-elements '(1 2 3 4 5) identity) 15)
+
+
+;; P3.  En clases se vio lo que es la currificacion, que en simple es transformar la forma
+;; en que una funcion recive sus argumentos, por ejemplo (f arg1 arg2) alser currificada
+;; se aplica como ((f arg1) arg2)
+(define (triple-sum a1 a2 a3)
+  (+ a1 a2 a3))
+(triple-sum 1 2 3)
+(define currified-triple-sum
+  (λ(a1)
+    (λ(a2)
+      (λ(a3)
+        (+ a1 a2 a3)
+        ))))
+(((currified-triple-sum 1) 2) 3)
+;; a. defina la funcion (curry a f) que al pasarle una funcion de a argumentos
+;; devuelve su version currificada
+(define (curry a f [args '()])
+  (match a
+    [0 (apply f args)]
+    [_ (λ(v) (curry (- a 1) f (cons v args)))]
+    ))
+(define curry-triple-sum (curry 3 triple-sum))
+(((curry-triple-sum 1) 2) 3)
+  
+;; Defina la funcion (uncurry-2 f) que al pasarle una funcion
+;; currificada de 2 argumentos, devuelve su version que recibe
+;; 2 argumentos
+;; uncurry-2 :: ((A->B)-> C) -> (A B -> C)
+(define (uncurry-2 f)
+  (λ(a b) ((f a) b)))
+
+(define curry-sum
+  (λ(a2)
+    (λ(a3)
+      (+ a2 a3)
+      )))
+(test ((uncurry-2 curry-sum) 2 3) 5)
+
+
+;; 4. Implemente la funcion (sumatoria a f b)
+;; sumatoria :: Int x Fun x Int -> Num
+;; aplica la funcion f a cada uno de los numeros entre a y b, y los suma
+(define (make-list a b [l '()])
+  (if (equal? a b)
+      (reverse (cons a l))
+      (make-list (add1 a) b (cons a l)))
+  )
+(test (make-list 0 5) '(0 1 2 3 4 5))
+(test (make-list 2 7) '(2 3 4 5 6 7))
+
+(define (sumatoria a f b)
+  (let* ([indices (make-list a b)]
+         [values (map f indices)]
+         [sum (foldr + 0 values)])
+    sum)
+  )
+(test (sumatoria 0 identity 5) 15)
+(test (sumatoria 2 add1 5) 18)
+
+
+;; 5. Un arbol binario se puede desvribir con la BNF siguiente:
+;; <AB> :: = (hoja <val>)
+;;         | (nodo <bt> <bt>)
+
+;; a. defina el tipo AB de los arboles binarios utilizando deftype
+(deftype AB
+  (hoja v)
+  (nodo v left right))
+
+;; b. al crear un arbol con deftype, se defino automágicamente la funcion AB?.
+;; defina la funcion map-ab sobre arboles binarios. esta lanza un error si su argumento
+;; no es un arbol
+
+(define (map-ab f bintree)
+  (if (not (AB? bintree))
+      (error "not a tree!")
+      (match bintree
+        [(hoja v) (hoja (f v))]
+        [(nodo v l r) (nodo (f v) (map-ab f l) (map-ab f r))]))) 
+  
+(def my-tree0 (nodo 3 (hoja 1) (hoja 7)))
+(def my-tree (nodo 4 (nodo 3 (hoja 1) (hoja 7)) (hoja 5)))
+(def my-not-tree 5)
+(map-ab (λ(v) (* v v)) my-tree)
+
+(define (mod-subtree bt)
+  (match bt
+    [(hoja v) (nodo 0 (hoja 1) (hoja 2))]
+    [(nodo v l r) (nodo (if (nodo? l)(nodo-v l) l)
+                        (mod-subtree l) (mod-subtree r))]))
+
+(test (mod-subtree my-tree)
+      (nodo 3 (nodo (hoja 1) (nodo 0 (hoja 1) (hoja 2)) (nodo 0 (hoja 1) (hoja 2))) (nodo 0 (hoja 1) (hoja 2))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
