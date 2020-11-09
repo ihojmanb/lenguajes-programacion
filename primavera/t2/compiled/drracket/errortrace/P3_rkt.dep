@@ -1,0 +1,1 @@
+("7.8" racket ("56628c6f98f5da9eebbac3f88c7409f0047bba77" . "eba0fcac7d647e6477a27af8b4efafc1502797ad") (collects #"errortrace" #"errortrace-key.rkt") (collects #"play" #"lang" #"reader.rkt") (collects #"play" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

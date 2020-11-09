@@ -1,0 +1,56 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                 P2 - TAREA 2                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; NOMBRE APELLIDO:
+;; Mucho éxito :)
+
+#lang play
+
+#| <logic> ::= 
+    | (bool <bool>)
+    | (id <id>)
+    | (band <logic> <logic>)
+    | (bor <logic> <logic>)
+    | (with <id> <logic> <logic>)
+|#
+
+#| ================================
+                PARTE A
+   ================================|#
+
+;;(deftype Logic
+;;  )
+
+
+#| ================================
+                PARTE B
+   ================================ |#
+
+#| <s-expr> ::=
+   | ...
+|#
+
+;; parse :: s-expr -> logic
+
+
+#| ================================
+                PARTE C 
+   ================================ |#
+
+;;(deftype LValue
+;;  )
+
+
+#| ================================
+                PARTE D
+   ================================ |#
+
+
+;; Interfaz del tipo de dato abstracto que
+;; representa los ambientes de identificadores.
+;; empty-env  :: Env
+;; extend-env :: Sym LValue Env -> Env
+;; env-lookup :: Sym Env -> LValue
+
+;; interp :: Expr Env -> LValue
