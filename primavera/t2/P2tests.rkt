@@ -4,7 +4,7 @@
 #lang play
 (require "P2.rkt")
 (print-only-errors #t)
-
+;; Test parser
 (test (parse 'True) (bool #t))
 (test (parse '(A v False)) (bor (id 'A) (bool #f)))
 (test (parse '(C ^ (A v B))) (band (id 'C) (bor (id 'A) (id 'B))))
