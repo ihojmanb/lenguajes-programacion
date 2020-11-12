@@ -9,13 +9,11 @@
 (test (parse '(A v False)) (bor (id 'A) (bool #f)))
 (test (parse '(C ^ (A v B))) (band (id 'C) (bor (id 'A) (id 'B))))
 (test (parse '(with (A True) (A ^ A))) (with 'A (bool #t) (band (id 'A) (id 'A))))
-
+;; Test env
 (test empty-env (mtEnv))
 (test (extend-env 'a (BoolV 'True) empty-env) (aEnv 'a (BoolV 'True) (mtEnv)))
 (test/exn (env-lookup 'a empty-env) "Identificador a no definido")
-;; DUDA
 (test (env-lookup 'a (aEnv 'f (BoolV 'False) (aEnv 'a (PropV 'A) empty-env))) (PropV 'A)) ;; no se si
-;; este ejemplo es correcto. Es corecto definir (PropV 'A)?
 
 ;; Test my-or
 (test (my-or (BoolV #t) (BoolV #t)) (BoolV #t))

@@ -18,7 +18,7 @@
 #| ================================
                 PARTE A
    ================================|#
-
+;; Logic es una representación de operaciones o tipos booleanos
 (deftype Logic
   (bool b)
   (id i)
@@ -40,6 +40,8 @@
 |#
 
 ;; parse :: s-expr -> logic
+;; parse toma la sintaxis concreta (definida en la tarea)
+;; y devuelve expresiones del tipo Logic
 (define (parse sexpr)
   (match sexpr
     [(? symbol?) (cond
@@ -55,31 +57,50 @@
 #| ================================
                 PARTE C 
    ================================ |#
+#| <lvalue> ::= 
+    | (BoolV <bool>)
+    | (PropV <id>)
+    | (ClosureV <sym> <logic> <logic> <Env>)
 
+|#
+;; LValue representa todos los tipos que puede entregar los valores del lenguaje,
+;; sean booleanos, proposiciones no interpretadas o clausuras de definiciones locales
 (deftype LValue
   (BoolV b)
-  (PropV p) ;; DUDA devuelve proposiciones?
-  (ClosureV id l1 l2 env) ;; tiene sentido guardar o devolver una aplicación de funcion?
-  ;; si tengo substitución diferida, quiere decir que estoy soportando funciones de primera clase?
+  (PropV p)
+  (ClosureV id l1 l2 env) 
   )
 
 
 #| ================================
                 PARTE D
    ================================ |#
+#|
+<env> ::= (mtEnv)
+| (aEnv <id> <LValue> <env>)
+|#
+;; Env define los ambienten que nos ayudarán con la substitución diferida
+;; podemos tener un ambiente vacio, o uno que contenga simbolos asociados a LValues
 (deftype Env
   (mtEnv)
   (aEnv id lval next))
 ;; Interfaz del tipo de dato abstracto que
 ;; representa los ambientes de identificadores.
+
 ;; empty-env  :: Env
+;; empty-env entrega un ambiente vacio
 (define empty-env
   (mtEnv))
 ;; extend-env :: Sym LValue Env -> Env
+;; extend-env toma un ambiente y extiende ese ambiente con un simbolo y
+;; un LValue asociados. Devuelve el nuevo ambiente extendido
 (define (extend-env id val env)
   (aEnv id val env))
 
 ;; env-lookup :: Sym Env -> LValue
+;; env-lookup toma un símbolo y lo busca en ambiente que se le entrega
+;; si lo encuentra, retorna el valor asociado a ese simbolo. Si no, entrega
+;; un error
 (define (env-lookup id env)
   (match env
     [(mtEnv) (error 'env-lookup "Identificador ~a no definido" id)]
@@ -87,6 +108,8 @@
                       v
                       (env-lookup id n))]))
 ;; interp :: Expr Env -> LValue
+;; el interprete toma una expresion y un ambiente, y calcula la expresion retornando
+;; un LValue
 (define (interp e env)
   (match e
     [(bool e) (cond

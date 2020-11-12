@@ -11,7 +11,15 @@
 #| ================================
                 PARTE A
    ================================|#
-
+#|
+<expr> ::=( real <num>)
+         |(comp <num> <num>)
+         |(add <expr> <expr>)
+         |(id <id>)
+         |(fun <sym> <expr>)
+         |(app <expr> <expr>)
+|#
+;; Expr representa la sintaxis abstracta del lenguaje
 (deftype Expr
   (real r)
   (comp r i)
@@ -33,6 +41,7 @@
            | (list <s-expr> 'where <sym> '= <s-expr>)  <- syntactical sugar
 |#
 ;; parse :: s-expr -> Expr
+;; traduce la sintaxis concreta a sintaxis abstracta
 (define (parse s)
   (match s
     [(? number?) (real s)]
@@ -43,7 +52,6 @@
     [(list f a) (app (parse f) (parse a))]
     [(list b 'where i '= e)
      (app (fun i (parse b)) (parse e))]))
-;;DUDA  se parsea i em app?
 
 
 #| ================================
@@ -53,13 +61,16 @@
 ;; Values of Expressions
 ;; <value> ::= (realV <num>)
 ;;           | (compV <num> <num>)
-;;           | (closureV <sym> <expr> <env>) ;; DUDA ???
+;;           | (closureV <sym> <expr> <env>)
+;;Value representa los posibles valores que devuelve el lenguaje
 (deftype Value
   (realV r)
   (compV r i)
   (closureV arg body env))
-;; esta muy rasca. mejorar este codigo
+
 ;; num+ :: Value Value -> Value
+;; num+ toma dos valores del lenguaje, suma las componentes correspondientes
+;; y devuelve un Value
 (define (sum+ v1 v2)
   (cond
     [(and (realV? v1) (realV? v2))
@@ -92,22 +103,32 @@
 
 ;; Interfaz del tipo de dato abstracto que
 ;; representa los ambientes de identificadores.
+#|
+<env> ::= (mtEnv)
+| (aEnv <id> <Value> <env>)
+|#
+;; Env define los ambienten que nos ayudarán con la substitución diferida
+;; podemos tener un ambiente vacio, o uno que contenga simbolos asociados a LValues
 
 (deftype Env
   (mtEnv)
   (aEnv id val next))
 
 ;; empty-env  :: Env
+;; empty-env entrega un ambiente vacio
 (define empty-env (mtEnv))
-(test empty-env (mtEnv))
+
 
 ;; extend-env :: Symbol Value Env -> Env
+;; extend-env toma un ambiente y extiende ese ambiente con un simbolo y
+;; un Value asociados. Devuelve el nuevo ambiente extendido
 (define (extend-env id val env) (aEnv id val env))
 
-(test (extend-env 'x (realV 2) empty-env) (aEnv 'x (realV 2) (mtEnv)))
-(test (extend-env 'y (compV 2 -1) empty-env) (aEnv 'y (compV 2 -1) (mtEnv)))
 
 ;; env-lookup :: Symbol Env -> Value
+;; env-lookup toma un símbolo y lo busca en ambiente que se le entrega
+;; si lo encuentra, retorna el valor asociado a ese simbolo. Si no, entrega
+;; un error
 (define (env-lookup id env)
   (match env
     [(mtEnv) (error 'env-lookup "error: ~a no está definido" id)]
@@ -116,11 +137,10 @@
                       (env-lookup id n))]))
 
 (def env1 (aEnv 'x (realV 2) (mtEnv)))
-;; Test env (faltan)
-(test (env-lookup 'x env1) (realV 2))
-(test/exn (env-lookup 'y env1) "error: y no está definido")
+(def env2 (aEnv 'x (realV 2) (aEnv 'y (compV 4 8) (aEnv 'z (closureV 'x (id 'x) (mtEnv)) (mtEnv)))))
 
 ;; eval :: Expr Env -> Value
+;; computa los valores del lenguaje. Devuelve un Value
 (define (eval e env)
   (match e
     [(real r) (realV r)]
@@ -135,44 +155,10 @@
      (eval fbody newEnv)
      ]
     ))
-;; Test eval
-(test (eval (real 8) empty-env) (realV 8))
-(test (eval (comp 1 2) empty-env) (compV 1 2))
-(test (eval (add (real 3) (real 6)) empty-env) (realV 9))
-(test/exn (eval (id 'x) empty-env) "error: x no está definido")
-(test (eval (id 'y) (aEnv 'y (compV 3 3) empty-env)) (compV 3 3))
-(test (eval (fun (id 'x) (add (real 2) (id 'x))) empty-env)
-      (closureV (id 'x) (add (real 2) (id 'x)) (mtEnv)))
-
-(test (eval (app (id 'f) (add (real 2) (real 3)))
-            (aEnv 'f (closureV 'x (id 'x) (mtEnv)) (mtEnv)))
-      (realV 5))
-(test/exn (eval (app (id 'f) (add (real 2) (real 3))) empty-env) "error: f no está definido")
-
-(test (eval
-         (app (fun 'y (add (id 'y) (real 5))) (add (real 2) (real 4)))
-         empty-env)
-        (realV 11))
-(test (eval
-         (app (fun 'y (add (id 'y) (comp 3 1))) (add (real 1) (real 2)))
-         empty-env)
-        (compV 6 1))
-
-
-;; Tests parse
-(test (parse 8) (real 8))
-(test (parse '(+ 1 (2)i)) (comp 1 2))
-(test (parse '(+ 3 6)) (add (real 3) (real 6)))
-(test (parse 'x) (id 'x))
-(test (parse '(fun (x) (+ 2 x))) (fun 'x (add (real 2) (id 'x))))
-(test (parse '(f (+ 2 3))) (app (id 'f) (add (real 2) (real 3))))
-(test (parse '((+ y 5) where y = (+ 2 4))) (app (fun 'y (add (id 'y) (real 5))) (add (real 2) (real 4))) )
-
-
-;; testeo de scope estatico; testeo error scope dinamico
 
 ;; run :: s-expr -> Value
+;; genera el pipeline de ejecucion. recibe sintixs concreta y devuelve Value
 (define (run s) (eval (parse s) empty-env))
-(test (run '((f (+ 2 (+ 1 (2)i))) where f = (fun (x) (+ x x)))) (compV 6 4))
+
 
 
