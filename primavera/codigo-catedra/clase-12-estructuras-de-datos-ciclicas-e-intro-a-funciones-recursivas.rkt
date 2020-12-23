@@ -84,7 +84,7 @@
 ;; values of expressions
 ;; <value> ::= (numV <number>)
 ;;          |  (closureV <sym> <s-expr> <env>)
-;;          | (exprV <s-expr> <env> <...>)
+;;          | (exprV <s-expr> <env> <s-expr>)
 (deftype Value
   (numV n)
   (closureV id body env)
@@ -135,15 +135,27 @@
 
 ; some testing
 (define expr1 '(with (f (fun (y) y)) (f 4)))
-(test (run expr1) (numV 4))
+;; (test (run expr1) (numV 4))
 (define expr2 '(with (x 3)
-                       (with (f (fun (y) (+ x y)))
-                             (f 4))))
+                     (with (f (fun (y) (+ x y)))
+                           (f 4))))
 (test (run expr2) (numV 7))
 (define expr3 '(with (x 3)
-                       (with (f (fun (y) (+ x y)))
-                             (with (x 5) (+ x (f 4))))))
+                     (with (f (fun (y) (+ x y)))
+                           (with (x 5) (+ x (f 4))))))
 (test (run expr3) (numV 12))
 
+;; ejercicio en clases
+(let* ([periodic (mcons 1 'dummy)]
+       [fortyfive (mcons 4 (mcons 5 'dummy))])
+  (begin (set-mcdr! (mcdr fortyfive) fortyfive)
+         (set-mcdr! periodic fortyfive))
+  periodic)
 
-
+;; fact con boxes
+(let ([fact (box 'dummy)])
+  (begin
+    (set-box! fact (λ (n) (if (zero? n)
+                              1
+                              (* n ((unbox fact) (- n 1))))))
+    ((unbox fact) 5)))

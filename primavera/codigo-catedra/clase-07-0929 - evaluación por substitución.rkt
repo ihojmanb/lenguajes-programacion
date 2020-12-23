@@ -1,4 +1,5 @@
 #lang play
+(print-only-errors #t)
 
 ;; sintaxis abstracta: la representación que ocupa el interprete para
 ;; darle semántica al código. 
@@ -45,28 +46,6 @@
     [(list f a) #:when (symbol? f) (app f (parse a))]
     [_ (error "error de parseo")])
   )
-
-;; subst :: Expr symbol Expr -> Expr
-;; sustituye en 'in' cada ocurrencia libre
-;; de 'what' por 'for'
-(define (subst in what for)
-  (match in
-    [(num n) (num n)]
-    [(add l r) (add (subst l what for) (subst r what for))]
-    [(sub l r) (sub (subst l what for) (subst r what for))]
-    [(if0 c t f) (if0 (subst c what for)
-                      (subst t what for)
-                      (subst f what for))]
-    [(with x e b) (with x
-                        (subst e what for)
-                        (if (symbol=? x what)
-                            b
-                            (subst b what for)))]
-    [(id x) (if (symbol=? x what)
-                for
-                (id x))]
-    [(app f e) (app f (subst e what for))]))
-
 ;; Definition of a function
 ;; <fundef> ::= (fundef <id> <id> <expr>)
 (deftype FunDef
@@ -80,43 +59,46 @@
     [(cons head tail) (if (symbol=? f-name (fundef-name head))
                           head
                           (look-up f-name tail))]))
-
-
+;; empty-env :: Env
+;; extend-env :: Symbol Value Env -> Env
+;; env-lookup :: Symbol Env -> Value
+(deftype Env
+  (mtEnv)
+  (aEnv id val next))
+(define empty-env mtEnv)
+(define (extend-env id val env)
+  (aEnv id val env))
+(define (lookup-env id env)
+  (match env
+    [(mtEnv) (error("free identifier: " id))]
+    [(aEnv x v n) (if (equal? id x)
+                      v
+                      (lookup-env id n))]))
 ;; Intérprete
-;; eval :: Expr listof(FunDef) -> number
-;; evaluar una expresion aritmetica
-(define (eval expr f-list)
+;; eval :: Expr listof(FunDef) Env -> number
+;; evaluates an arithmetical expression with function calls
+;; and local definitions deferring the substitutions
+(define (eval expr f-list env)
   (match expr
     [(num n) n]
-    [(id x) x]
+    [(id x) (lookup-env x env)]
     [(add l r) (+ (eval l f-list) (eval r f-list))]
     [(sub l r) (- (eval l f-list) (eval r f-list))]
     [(if0 c t f) (if (zero? (eval c f-list))(eval t f-list) (eval f f-list))]
-    [(with id expr body) (eval (subst body id (num (eval expr f-list))) f-list) ]
+    [(with x e b) (def new-env (extend-env x (eval e f-list env) env))
+                  (eval b f-list new-env)]
     [(app f e)
-     (def (fundef fun-id arg body) (look-up f f-list))
-     (eval (subst body arg (eval e f-list)) f-list)]
-    [(id x) (error 'calc "free identifier ~a" x)]
+     (def (fundef _ arg body) (look-up f f-list))
+     (def new-env (extend-env arg (eval e f-list env) mtEnv));; using mtEnv instead of env
+     ;; we are enabling static scope instead of dynamic: we only have access to the
+     ;; variables in or lexical block, not in the upper calling stack
+     (eval body f-list new-env)
+     e]
+    [(id x) (error 'eval "free identifier ~a" x)]
     ))
 
 (define (run prog f-list)
   (eval (parse prog) f-list))
-
-
-
-(define my-funcs
-  (list (fundef 'my-double 'x (parse '(+ x x)))
-        (fundef 'my-plus1 'x (parse '(+ x 1)))))
-
-(define my-expr '(+ 1 (my-double (my-plus1 4))))
-
-(test (run my-expr my-funcs) 11)
-
-
-
-
-
-
 
 
 

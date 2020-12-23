@@ -1,0 +1,5 @@
+#lang racket
+(define (double_rec accum value)
+  (if (zero? value)
+      accum
+      (double_rec (+ accum 2) (sub1 value))))

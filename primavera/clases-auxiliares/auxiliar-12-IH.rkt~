@@ -1,0 +1,22 @@
+#lang play
+
+
+(defmac (switch e
+                [case question -> res]
+                ...
+                [default -> default-res])
+  #:keywords case default ->
+  (match (e)
+    [question res]
+    ...
+    [default default-res]
+    ))
+
+
+
+
+(test (switch (-10 17)
+              [case positive? -> 7]
+              [case negative? -> 40]
+              [case number? -> 1729]
+              [default -> 8]) 40)

@@ -84,9 +84,11 @@
 ;; values of expressions
 ;; <value> ::= (numV <number>)
 ;;          |  (closureV <sym> <s-expr> <env>)
+;;          | (exprV <s-expr> <env> <s-expr>)
 (deftype Value
   (numV n)
-  (closureV id body env))
+  (closureV id body env)
+  (exprV expr env cache))
 
 ;; Intérprete
 ;; eval :: Expr Env -> Value
@@ -97,19 +99,35 @@
     [(num n) (numV n)]
     [(fun arg body) (closureV arg body env)]
     [(id x) (lookup-env x env)]
-    [(add l r) (addV (eval l env) (eval r env))]
-    [(sub l r) (subV (eval l env) (eval r env))]
-    [(if0 c t f) (if (num-zero? (eval c env))(eval t env) (eval f env))]
-    [(app f e)  (def (closureV farg fbody fenv) (eval f env))
-                (eval fbody (extend-env farg (eval e env) fenv))]
+    [(add l r) (addV (strict (eval l env)) (strict (eval r env)))]
+    [(sub l r) (subV (strict (eval l env)) (strict (eval r env)))]
+    [(if0 c t f) (if (num-zero? (strict (eval c env)))(eval t env) (eval f env))]
+    [(app f e)  (def (closureV farg fbody fenv) (strict (eval f env)))
+                (eval fbody (extend-env farg (exprV e env (box #f)) fenv))]
     [(id x) (error 'eval "free identifier ~a" x)]
     ))
+
+;; Further reduces a Value to a numV or closureV
+;; strict :: Value -> Value [without exprV]
+(define (strict v)
+  (match v
+    [(exprV expr env cache)
+     (if (not (unbox cache))
+         (let ([val (strict (eval expr env))])
+           (set-box! cache val)
+           val)
+         (unbox cache))]
+    [_ v]))
+
 (define (addV n1 n2)
   (numV (+ (numV-n n1) (numV-n n2))))
+
 (define (subV n1 n2)
   (numV (- (numV-n n1) (numV-n n2))))
+
 (define (num-zero? n)
   (def (numV v) n) (zero? v))
+
 ;; run :: s-expr -> value
 ;; evaluates an expression using static scoping 
 (define (run prog)

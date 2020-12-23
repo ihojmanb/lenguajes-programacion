@@ -1,0 +1,203 @@
+#lang play
+
+#|
+<expr> ::= (num <num>)
+         | (add <expr> <expr>)
+         | (sub <expr> <expr>)
+         | (div <expr> <expr>)
+         | (if0 <expr> <expr> <expr>)
+         | (id <id>)
+         | (fun <id> <expr>)
+         | (app <expr> <expr>)
+         | (nil)
+         | (mtch <expr> <expr>)
+|#
+;; Inductive type for representing (the abstract syntax
+;; of) an aritmetical language with first-class functions
+(deftype Expr
+  (num n)
+  (add l r)
+  (sub l r)
+  (div n d)
+  (if0 c t f)
+  (id x)
+  (fun arg body)
+  (app f-name f-arg)
+  (nil)
+  (mtch expr cases)
+  (par e1 e2)
+  )
+
+
+
+;; s-expressions used as concrete syntax for our programs
+#|
+<s-expr> ::= <num>
+           | <sym>
+           | (list '+  <s-expr> <s-expr>)
+           | (list '-  <s-expr> <s-expr>)
+           | (list '/  <s-expr> <s-expr>)
+           | (list 'if0  <s-expr> <s-expr> <s-expr>)
+           | (list 'fun (list <sym>) <s-expr>)
+           | (list <s-expr> <s-expr>)
+           | (list 'with (list <sym> <s-expr>) <s-expr>)   <- syntactic sugar
+           | (list 'cons <s-expr> <s-expr>)
+           | (list 'match <sym> 'as (list <sym> '=> <s-expr>)) ;; DUDA
+           | 'nil ;; DUDA
+|#
+
+;; parse :: s-expr -> Expr
+;; converts s-expressions into Exprs
+(define (parse s-expr)
+  (match s-expr
+    [ null #:when (equal? null 'nil) '()]
+    [ n #:when (number? n) (num n) ]
+    [ x #:when (symbol? x) (id x) ]
+    [(list '+ l r) (add (parse l) (parse r))]    
+    [(list '- l r) (sub (parse l) (parse r))]
+    [(list '/ n d) (div (parse n) (parse d))]
+    [(list 'if0 c t f) (if0 (parse c) (parse t) (parse f))]
+    [(list 'fun (list x) b) (fun x (parse b))]
+    [(list f a) (app (parse f) (parse a))]    
+    [(list 'with (list x e) b) #:when (symbol? x)
+                               (app (fun x (parse b)) (parse e))]
+    [(list 'cons h t) (par (parse h) (parse t))]
+    [(list 'match x 'as cases ...) (mtch (parse x) (map parse-case cases))]
+    ))
+
+;; parse-case :: s-expr -> Expr
+;; parse-case parsea los casos que contiene el match escrito por el programador
+;; devolviendo una expresión
+(define(parse-case c)
+  (match c
+    [(list 'nil => body) (λ() (parse body))]
+    [(list 'cons x xs => body) (list (cons x xs)(λ (a b) (parse body)))] ;; AQUI tengo que cambiar
+    ))
+
+
+;; Interface of the Abstract Dada Type (ADT) for  
+;; representing idenfifier environments
+
+;; empty-env  :: Env
+;; extend-env :: Symbol Value Env -> Env
+;; env-lookup :: Symbol Env -> Value
+
+;; Implementation of the ADT
+
+;; <env> ::= mtEnv
+;;         | (aEnv <id> <value> <env>)
+(deftype Env
+  (mtEnv)
+  (aEnv id val env))
+
+(define empty-env (mtEnv))
+ 
+(define extend-env aEnv)
+ 
+(define (env-lookup y env)
+  (match env
+    [(mtEnv) (error 'env-lookup "free identifier: ~a"y)]
+    [(aEnv id val rest) (if (symbol=? id y)
+                            val
+                            (env-lookup y rest))]))
+
+
+
+;; values of expressions
+(deftype Value
+  (numV n)
+  (fclosureV id body env)
+  (exprV expr env cache)
+  (listV head rest env))
+
+
+;; binop :: (Num Num -> Num) -> (Value Value -> Value)
+;; Lifts a binary numeric operator to (numeric) Value's 
+(define (binop op)
+  (λ (n1 n2)
+    (def (numV v1) n1) (def (numV v2) n2) (numV (op v1 v2))))
+
+;; unop :: (Num -> A) -> (Value -> A)
+;; Lifts a function over Num to (numeric) Value 
+(define (unop op)
+  (λ (n) (def (numV v) n) (op v)))
+
+;; Further reduces a Value to a numV or closureV
+;; and caches the reduced value
+;; strict :: Value -> Value [without exprV]
+(define (strict v)
+  (match v
+    [(exprV expr env cache)
+     (if (not (unbox cache))
+         (let ([val (strict (eval expr env))])
+           (set-box! cache val)
+           val)
+         (unbox cache))]
+    [ _ v]))
+
+
+;; eval :: Expr Env -> Value
+;; evaluates an expression in a given environment
+;; using static scope and lazy evaluation
+(define (eval expr env)
+  (match expr
+    [(num n) (numV n)]
+    [(fun id body) (fclosureV id body env)]
+    [(id x) (env-lookup x env)]
+    [(par h t) (listV h t env)]
+    [(add l r) ((binop +) (strict (eval l env)) (strict (eval r env)))]
+    [(sub l r) ((binop -) (strict (eval l env)) (strict (eval r env)))]
+    [(div n d) (if ((unop zero?) (strict (eval d env)))
+                   (error 'quotient "undefined for 0")
+                   ((binop quotient)
+                    (strict (eval n env)) (strict (eval d env))))] ;; ¿optimizar computo duplicado?
+    [(if0 c t f) (if  ((unop zero?) (strict (eval c env)))
+                      (eval t env)
+                      (eval f env))]
+    [(app f e) (def (fclosureV the-arg the-body the-clos-env) (strict (eval f env)))
+               (def the-ext-env (extend-env the-arg
+                                            (exprV e env (box #f))
+                                            the-clos-env))
+               (eval the-body the-ext-env)]
+    [(mtch x caselist)
+     (eval-list (eval x env) caselist env)
+     ;    )
+     ]
+    ))
+;; eval-list :: TODO
+;; patterns is a list of cons, hence we take the first element of the first
+;; pair and use it as a pattern. If x matches it, then we eval the second
+;; element of the pair, the corresponding body.
+;; if it doesn't match, we take a recursive step with the rest of the list
+(define (eval-list lv casos env)
+  (def (exprV e amb b) lv)
+  ;e ; (par (add (num 5) (num 1)) (par (num 2) (par (num 3) '())))
+  (match e
+    ['() ((first casos))]
+    [(par h t)
+     (def (cons id1 id2) (first (second casos)))
+     ;(par h t)
+     (def newEnv0 (extend-env id1 (exprV h amb (box #f)) (mtEnv))) ; BIEN
+     (def newEnv  (extend-env id2 (exprV t (mtEnv) (box #f)) newEnv0)) ; OJO
+     ;(eval h amb)
+     ;amb ; (aEnv 'x (exprV (num 1) (mtEnv) '#&#f) (mtEnv))
+     ;newEnv0 ; (aEnv 'x (exprV (add (num 5) (id 'x)) (mtEnv) '#&#f) (aEnv 'x (exprV (num 1) (mtEnv) '#&#f) (mtEnv)))
+     ;newEnv ;(aEnv 'xs (exprV (par (num 200) '()) (mtEnv) '#&#f) (aEnv 'x (exprV (add (num 5) (id 'x)) (mtEnv) '#&#f) (mtEnv)))
+     ;(second (second casos))
+     ;(eval ((second (second casos)) (eval h amb) (eval t amb)) newEnv)
+     ;h ; (add (num 5) (id 'x))
+     ;(eval h amb)
+     ;(eval ((second (second casos)) h t) amb) ; (numV 11)
+     ;(println ((second (second casos)) h t))
+     ;(println newEnv0)
+     ;(println newEnv)
+     (eval ((second (second casos)) h t) newEnv)
+     ])
+  )
+;; run :: s-expr -> value
+;; evaluates an expression using static scoping 
+(define (run prog)
+  (eval (parse prog) empty-env))
+
+
+

@@ -1,7 +1,7 @@
-#reader(lib"read.ss""wxme")WXME0108 ## 
+#reader(lib"read.ss""wxme")WXME0109 ## 
 #|
    This file uses the GRacket editor format.
-   Open this file in DrRacket version 6.11 or later to read it.
+   Open this file in DrRacket version 7.8 or later to read it.
 
    Most likely, it was created by saving a program in DrRacket,
    and it probably contains a program with non-text elements
@@ -16,25 +16,25 @@
 4 1 34 #"(lib \"syntax-browser.ss\" \"mrlib\")\0"
 1 0 36 #"(lib \"cache-image-snip.ss\" \"mrlib\")\0"
 1 0 68
-(
+(0
  #"((lib \"image-core.ss\" \"mrlib\") (lib \"image-core-wxme.rkt\" \"mr"
  #"lib\"))\0"
 ) 1 0 16 #"drscheme:number\0"
 3 0 44 #"(lib \"number-snip.ss\" \"drscheme\" \"private\")\0"
 1 0 36 #"(lib \"comment-snip.ss\" \"framework\")\0"
 1 0 93
-(
+(1
  #"((lib \"collapsed-snipclass.ss\" \"framework\") (lib \"collapsed-sni"
  #"pclass-wxme.ss\" \"framework\"))\0"
 ) 0 0 43 #"(lib \"collapsed-snipclass.ss\" \"framework\")\0"
 0 0 19 #"drscheme:sexp-snip\0"
 0 0 29 #"drscheme:bindings-snipclass%\0"
 1 0 101
-(
+(2
  #"((lib \"ellipsis-snip.rkt\" \"drracket\" \"private\") (lib \"ellipsi"
  #"s-snip-wxme.rkt\" \"drracket\" \"private\"))\0"
 ) 2 0 88
-(
+(3
  #"((lib \"pict-snip.rkt\" \"drracket\" \"private\") (lib \"pict-snip.r"
  #"kt\" \"drracket\" \"private\"))\0"
 ) 0 0 55
@@ -57,12 +57,12 @@
 1 0 10 #"text-box%\0"
 1 0 32 #"(lib \"text-snipclass.ss\" \"xml\")\0"
 1 0 1 6 #"wxloc\0"
-          0 0 64 0 1 #"\0"
+          0 0 66 0 1 #"\0"
 0 75 1 #"\0"
 0 12 90 -1 90 -1 3 -1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 255 255 255 1 -1 0 9
 #"Standard\0"
 0 75 10 #"Monospace\0"
-0 14 90 -1 90 -1 3 -1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 255 255 255 1 -1 2 1
+0 12 90 -1 90 -1 3 -1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 255 255 255 1 -1 2 1
 #"\0"
 0 -1 1 #"\0"
 1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 -1 -1 2 24
@@ -107,19 +107,19 @@
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 194 116 31 0 0 0 -1 -1 2
 38 #"framework:syntax-color:scheme:comment\0"
 0 -1 1 #"\0"
-1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 194 116 31 0 0 0 -1 -1 2 1
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 1 1 1 194 158 31 0 0 0 -1 -1 2 1
 #"\0"
 0 -1 1 #"\0"
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 41 128 38 0 0 0 -1 -1 2 37
 #"framework:syntax-color:scheme:string\0"
 0 -1 1 #"\0"
-1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 41 128 38 0 0 0 -1 -1 2 35
-#"framework:syntax-color:scheme:text\0"
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 1 1 1 211 72 255 0 0 0 -1 -1 2
+35 #"framework:syntax-color:scheme:text\0"
 0 -1 1 #"\0"
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 41 128 38 0 0 0 -1 -1 2 39
 #"framework:syntax-color:scheme:constant\0"
 0 -1 1 #"\0"
-1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 41 128 38 0 0 0 -1 -1 2 1
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 1 1 1 211 72 255 0 0 0 -1 -1 2 1
 #"\0"
 0 -1 1 #"\0"
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 132 60 36 0 0 0 -1 -1 2 49
@@ -128,7 +128,7 @@
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 132 60 36 0 0 0 -1 -1 2 42
 #"framework:syntax-color:scheme:parenthesis\0"
 0 -1 1 #"\0"
-1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 132 60 36 0 0 0 -1 -1 2 1
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 1 1 1 0 150 255 0 0 0 -1 -1 2 1
 #"\0"
 0 -1 1 #"\0"
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 255 0 0 0 0 0 -1 -1 2 36
@@ -206,8 +206,14 @@
 1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 -1 -1 2 38
 #"plt:module-language:test-coverage-off\0"
 0 -1 1 #"\0"
-1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 1 0 0 0 0 0 0 255 165 0 0 0 0 -1 -1 4 1
-#"\0"
+1 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 1 0 0 0 0 0 0 255 165 0 0 0 0 -1 -1 0 36
+#"mrlib/syntax-browser:subtitle-color\0"
+0 -1 1 #"\0"
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 1 0 0 0 0 0 0 36 36 140 255 255 255 -1
+-1 0 42 #"mrlib/syntax-browser:focused-syntax-color\0"
+0 -1 1 #"\0"
+1 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 1 0 0 0 0 0 0 34 139 34 255 255 255 -1
+-1 4 1 #"\0"
 0 71 1 #"\0"
 1.0 0 -1 -1 -1 -1 -1 -1 0 0 0 0 0 0 1.0 1.0 1.0 1.0 1.0 1.0 0 0 0 0 0 0
 -1 -1 4 1 #"\0"
@@ -236,9 +242,6 @@
 1.0 0 -1 -1 -1 93 -1 -1 0 1 0 0 0 0 0.0 0.0 0.0 1.0 1.0 1.0 0 0 175 0 0
 0 -1 -1 0 1 #"\0"
 0 75 10 #"Monospace\0"
-0.0 15 90 -1 90 -1 3 -1 0 1 0 1 0 0 0.0 0.0 0.0 0.0 0.0 0.0 0 0 0 255
-255 255 1 -1 0 1 #"\0"
-0 75 10 #"Monospace\0"
 0.0 12 90 -1 90 -1 3 -1 0 1 0 1 0 0 0.0 0.0 0.0 0.0 0.0 0.0 0 0 0 255
 255 255 1 -1 2 1 #"\0"
 0 -1 1 #"\0"
@@ -246,7 +249,10 @@
 0 -1 -1 4 1 #"\0"
 0 -1 1 #"\0"
 1.0 0 92 -1 -1 -1 -1 -1 0 0 0 0 0 1 0.0 0.0 0.0 0.0 0.0 0.0 0 0 0 255
-255 0 -1 -1           0 1459 0 28 3 10 #"#lang play"
+255 0 -1 -1 0 1 #"\0"
+0 75 10 #"Monospace\0"
+0.0 15 90 -1 90 -1 3 -1 0 1 0 1 0 0 0.0 0.0 0.0 0.0 0.0 0.0 0 0 0 255
+255 255 1 -1           0 1454 0 28 3 10 #"#lang play"
 0 0 24 29 1 #"\n"
 0 0 24 3 1 #"("
 0 0 14 3 17 #"print-only-errors"
@@ -619,8 +625,7 @@
 0 0 24 3 1 #" "
 0 0 14 3 3 #"env"
 0 0 24 3 2 #"))"
-0 0 17 3 45 #"; promesa (es como una clausura sin argumento"
-0 0 17 3 1 #")"
+0 0 17 3 46 #"; promesa (es como una clausura sin argumento)"
 0 0 24 29 1 #"\n"
 0 0 24 29 1 #"\n"
 0 0 17 3 57 #"; Interp : Expr x Env x -> Val (o free identifier error )"
@@ -773,8 +778,7 @@
 0 0 17 3 2 #";("
 0 0 17 3 6 #"interp"
 0 0 17 3 1 #" "
-0 0 17 3 1 #"e"
-0 0 17 3 6 #"  env)"
+0 0 17 3 7 #"e  env)"
 0 0 24 29 1 #"\n"
 0 0 24 3 26 #"                         ("
 0 0 14 3 5 #"exprV"
@@ -786,7 +790,7 @@
 0 0 17 3 23 #"; now we're being lazy!"
 0 0 24 29 1 #"\n"
 0 0 24 3 25 #"                         "
-0 0 14 3 4 #"fenv"
+0 0 14 3 3 #"env"
 0 0 24 3 4 #"))] "
 0 0 17 3 67
 #"; restore definition-time environment                              "
@@ -849,8 +853,7 @@
 #"; \"strict :: numV o closureV o exprV -> numV o closureV\""
 0 0 24 29 1 #"\n"
 0 0 24 3 1 #"("
-0 0 15 3 4 #"defi"
-0 0 15 3 2 #"ne"
+0 0 15 3 6 #"define"
 0 0 24 3 2 #" ("
 0 0 14 3 6 #"strict"
 0 0 24 3 1 #" "
@@ -1177,8 +1180,7 @@
 0 0 17 3 1 #" "
 0 0 17 3 1 #"y"
 0 0 17 3 2 #"} "
-0 0 17 3 1 #"3"
-0 0 17 3 10 #"}) \"free\")"
+0 0 17 3 11 #"3}) \"free\")"
 0 0 24 29 1 #"\n"
 0 0 24 29 1 #"\n"
 0 0 17 3 46 #";------------ testing parser------------------"
@@ -1505,8 +1507,7 @@
 0 0 24 3 2 #"} "
 0 0 14 3 1 #"x"
 0 0 24 3 3 #"}) "
-0 0 19 3 1 #"\""
-0 0 19 3 16 #"free identifier\""
+0 0 19 3 17 #"\"free identifier\""
 0 0 24 3 1 #")"
 0 0 24 29 1 #"\n"
 0 0 24 29 1 #"\n"

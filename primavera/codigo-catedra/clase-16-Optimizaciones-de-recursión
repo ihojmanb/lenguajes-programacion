@@ -1,0 +1,20 @@
+#lang racket
+;; Ordinary implementation of factorial
+(define (fact n)
+  (if (zero? n)
+      1
+      (* n (fact (- n 1)))))
+
+;; Tail recursive version of factoria
+;; 'accum' must be initialized to 1
+(define (tail-fact accum n)
+  (if (zero? n)
+      accum
+      (tail-fact (* accum n) (sub1 n))))
+
+;; Doubles 'n'
+;; 'accum' must be initialized to 0
+(define (double_rec accum value)
+  (if (zero? value)
+      accum
+      (double_rec (+ accum 2) (sub1 value))))
