@@ -93,6 +93,9 @@ Nombre y Apellido: Ianiv Hojman
 
 (define (lookup-env x env)
   ;; printear x para ver si es 'a o (id 'a)
+  (display "lookup-env: ")
+  (displayln x)
+  (displayln env)
   (match env
     [(mtEnv) (error 'lookup-env "free identifier ~a" x)] 
     [(aEnv id loc rest)
@@ -168,6 +171,8 @@ Nombre y Apellido: Ianiv Hojman
     [(fun id body) (v*s (closureV id body env) sto)]
     [(id x) (v*s (lookup-sto (lookup-env x env) sto) sto)]
     [(add l r)
+     (display "env when adding: ")
+     (displayln env)
      (def (v*s l-val l-sto) (eval l env sto))
      (def (v*s r-val r-sto) (eval r env l-sto)) ;; aquí se evalua (id 'a)
      (v*s ((binop +) l-val r-val) r-sto)]
@@ -183,16 +188,47 @@ Nombre y Apellido: Ianiv Hojman
 
     [(app fun-expr arg-expr)
      (match arg-expr
-       [(? list?)
-        (def (v*s (closureV id body fenv) fun-sto) (eval fun-expr env sto))
-        (def (v*s arg-val arg-sto) (eval (first arg-expr) env fun-sto))
-        (def new-loc (next-location arg-sto))
-        (def recEnv (extend-env (first id) new-loc fenv)) ;; env que le paso a la funcion recursiva
-        (def recSto (extend-sto new-loc arg-val arg-sto)) ;; sto que le paso a la funcion recursiva
-        (def (v*s (closureV _ _ finalEnv) finalSto)
-          (build-env-sto (rest id) (rest arg-expr) recEnv recSto))
-        (eval body finalEnv finalSto)
+       #;[(? list?)
+        (def (v*s (closureV id body fenv1) fun-sto1) (eval fun-expr env sto))
+        ;; y = 'a
+        (displayln "fenv of 1st arg:")
+        (displayln fenv1)
+        (def (v*s arg-val1 arg-sto1) (eval (first arg-expr) env fun-sto1))
+        (def new-loc1 (next-location arg-sto1)) 
+        (def recEnv1 (extend-env (first id) new-loc1 fenv1)) 
+        (def recSto1 (extend-sto new-loc1 arg-val1 arg-sto1))
+        
+        ;; x = 8
+        (displayln "env of 2nd arg:")
+        (displayln recEnv1)
+        (def (v*s arg-val2 arg-sto2) (eval (second arg-expr) env fun-sto1)) ;; fun-sto1? o arg-sto1?
+        (def new-loc2 (next-location recSto1))  
+        (def recEnv2 (extend-env (second id) new-loc2 recEnv1))
+        (def recSto2 (extend-sto new-loc2 arg-val2 recSto1))
+
+        ;; z = 5
+        (def (v*s arg-val3 arg-sto3) (eval (third arg-expr) env fun-sto1))  ;; fun-sto1? o arg-sto2?
+        (def new-loc3 (next-location recSto2))  
+        (def recEnv3 (extend-env (third id) new-loc3 recEnv2))
+        (def recSto3 (extend-sto new-loc3 arg-val3 recSto2))
+        (eval body recEnv3 recSto3)
         ]
+       [(? list?)
+          (def (v*s (closureV id body fenv) fun-sto) (eval fun-expr env sto))
+          (display "first real argument: ")
+          (displayln (first arg-expr))
+          (displayln "\n")
+          (displayln "env of 1st arg:")
+          (displayln env)
+          (def (v*s arg-val arg-sto) (eval (first arg-expr) env fun-sto))
+          (def new-loc (next-location arg-sto)) 
+          (def recEnv (extend-env (first id) new-loc fenv)) ;; este env no viola el scope estático? (antes era fenv) 
+          (def recSto (extend-sto new-loc arg-val arg-sto))  
+
+          (def (v*s (closureV _ _ finalEnv) finalSto)
+            (build-env-sto (rest id) (rest arg-expr) fun-sto env recEnv recSto))
+          (eval body finalEnv finalSto)
+          ]
        #;[(? list?) ;; safe para no cagarla xd
           (def (v*s (closureV id body fenv) fun-sto) (eval fun-expr env sto))
           (def (v*s arg-val arg-sto) (eval (first arg-expr) env fun-sto))
@@ -205,6 +241,8 @@ Nombre y Apellido: Ianiv Hojman
         (def (v*s (closureV id body fenv) fun-sto) (eval fun-expr env sto))
         (def (v*s arg-val arg-sto) (eval arg-expr env fun-sto))
         (def new-loc (next-location arg-sto))
+        (display "extended env: ")
+        (displayln (extend-env (first id) new-loc fenv))
         (eval body
               (extend-env (first id) new-loc fenv)
               (extend-sto new-loc arg-val arg-sto))])]
@@ -217,15 +255,15 @@ Nombre y Apellido: Ianiv Hojman
      ]))
 ;; build-env-sto :: TODO
 ;; TODO TESTS
-(define (build-env-sto idlist arglist env sto)
+(define (build-env-sto idlist arglist fun-sto env recEnv recSto)
   (match arglist
-    ['() (v*s (closureV 'dummy1 'dummy2 env) sto)]
+    ['() (v*s (closureV 'dummy1 'dummy2 recEnv) recSto)]
     [_
-     (def (v*s arg-val arg-sto) (eval (first arglist) env sto)) ;; que pasa cuando hago (eval (id 'a) env sto???)
-     (def new-loc (next-location arg-sto))
-     (def recEnv (extend-env (first idlist) new-loc env)) ;; env que le paso a la funcion recursiva
-     (def recSto (extend-sto new-loc arg-val arg-sto)) ;; sto que le paso a la funcion recursiva
-     (build-env-sto (rest idlist) (rest arglist) recEnv recSto)
+     (def (v*s arg-val arg-sto) (eval (first arglist) env fun-sto)) ;; que pasa cuando hago (eval (id 'a) env sto???)
+     (def new-loc (next-location recSto))
+     (def newRecEnv (extend-env (first idlist) new-loc recEnv)) ;; env que le paso a la funcion recursiva
+     (def newRecSto (extend-sto new-loc arg-val recSto)) ;; sto que le paso a la funcion recursiva
+     (build-env-sto (rest idlist) (rest arglist) fun-sto env newRecEnv newRecSto)
      ]))
 
 
@@ -255,29 +293,29 @@ Nombre y Apellido: Ianiv Hojman
 (define expr1 '(with (f (fun (y) y)) (f (4))))
 (test (run expr1) (numV 4))
 (define expr2 '(with (x 3)
-                     (with (f (fun (y) (+ x y)))
-                           (f (4)))))
+                       (with (f (fun (y) (+ x y)))
+                             (f (4)))))
 (test (run expr2) (numV 7))
 (define expr3 '(with (x 3)
-                     (with (f (fun (y) (+ x y)))
-                           (with (x 5) (+ x (f (4)))))))
+                       (with (f (fun (y) (+ x y)))
+                             (with (x 5) (+ x (f (4)))))))
 (test (run expr3) (numV 12))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;a)
 (test (run '(seq (+ 1 2) 5)) (numV 5))
 ;b)
 (test (run '(with (x 9)
-                  ( if0 (seq (set x 2) (- 3 3))
-                        (+ 1 x)
-                        (- 14 x))))
-      (numV 3))
+                    ( if0 (seq (set x 2) (- 3 3))
+                          (+ 1 x)
+                          (- 14 x))))
+        (numV 3))
 
 ;c)
 (test (run'(with (f (fun (z) (+ 1 z)))
-                 (f (8)))) (numV 9))
+                   (f (8)))) (numV 9))
 
 (define expr4 '(with (f (fun (x y z) (+ (- x y) z)))
-                     (f (8 3 7))))
+                       (f (8 3 7))))
 (test (run expr4) (numV 12))
 
 ;; funcion sin argumentos
@@ -301,7 +339,8 @@ Nombre y Apellido: Ianiv Hojman
 (define expr9 '(with (a 3)
                        (with (f (fun (x y z) (seq (set y 10) (+ x z))))
                              (+ (f (8 a 5)) a))))
-;(run expr9)
+(test (run expr9)
+        (numV 16))
 
 
 
